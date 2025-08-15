@@ -1,75 +1,39 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
 
 const router = Router();
 
-// تسجيل مستخدم جديد
-router.post('/register', async (req, res) => {
+const User = mongoose.models.User || mongoose.model('User', new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, unique: true, required: true },
+  passwordHashed: { type: String, required: true },
+  role: { type: String, enum: ['admin','sales','designer','logistics'], default: 'sales' },
+}, { timestamps: true }));
+
+router.post('/register', async (req, res, next) => {
   try {
-    const { name, email, password, role = 'admin' } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password) return res.status(400).json({ message: 'Missing fields' });
     const exists = await User.findOne({ email });
-    if (exists) {
-      return res.status(409).json({ message: 'Email already used' });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, passwordHash, role });
-
-    const token = jwt.sign(
-      { id: user._id, email, role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      token,
-      user: { id: user._id, name, email, role }
-    });
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
+    if (exists) return res.status(409).json({ message: 'Email exists' });
+    const passwordHashed = await bcrypt.hash(password, 10);
+    const u = await User.create({ name, email, passwordHashed, role });
+    res.status(201).json({ id: u._id, email: u.email, role: u.role });
+  } catch (e) { next(e); }
 });
 
-// تسجيل الدخول
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' 
-});
-    }
-
-    const match = await bcrypt.compare(password, user.passwordHash);
-    if (!match) {
-      return res.status(401).json({ message: 'Invalid email or password' 
-});
-    }
-
-    const token = jwt.sign(
-      { id: user._id, email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      token,
-      user: { id: user._id, name: user.name, email: user.email, role: 
-user.role }
-    });
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
+    const u = await User.findOne({ email });
+    if (!u) return res.status(401).json({ message: 'Invalid credentials' });
+    const ok = await bcrypt.compare(password, u.passwordHashed || '');
+    if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
+    const token = jwt.sign({ id: u._id.toString(), role: u.role, name: u.name }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
+    res.json({ token });
+  } catch (e) { next(e); }
 });
 
 export default router;

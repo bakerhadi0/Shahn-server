@@ -26,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/visits', visitRoutes);
+app.use("/api/customers", require("./routes/customers"));
 
 app.use((err, req, res, next)=>{ console.error('Error:', err); res.status(500).json({ message: err.message || 'Server error' }); });
 

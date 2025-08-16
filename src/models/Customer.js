@@ -1,11 +1,15 @@
-import mongoose from 'mongoose';
+const mongoose = require("mongoose");
 
-const customerSchema = new mongoose.Schema({
-  name:     { type: String, required: true },
-  company:  { type: String },
-  phone:    { type: String },
-  location: { type: String },   // مدينة/لوكيشن مختصر
-  notes:    { type: String }
-}, { timestamps: true });
+const CustomerSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    company: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    location: { type: String, default: "" },
+    notes: { type: String, default: "" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  },
+  { timestamps: true }
+);
 
-export default mongoose.model('Customer', customerSchema);
+module.exports = mongoose.model("Customer", CustomerSchema);

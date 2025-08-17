@@ -1,49 +1,30 @@
-const router = require('express').Router();
-const Customer = require('../models/Customer');
-const { requireAuth } = require('../auth');
+const router = require("express").Router();
+const Customer = require("../models/Customer");
+const { requireAuth } = require("../lib/auth");
 
-router.get('/', requireAuth, async (req,res,next)=>{
+router.get("/", requireAuth, async (req,res,next)=>{
   try{
-    const { q } = req.query;
-    const filter = {};
-    if (req.user.role !== 'admin') filter.user = req.user.id;
-    if (q){
-      const rx = new RegExp(q,'i');
-      filter.$or = [{name:rx},{company:rx},{phone:rx}];
-    }
-    const items = await Customer.find(filter).sort({createdAt:-1});
+    const s = (req.query.s||"").trim();
+    const q = s ? { $or:[
+      { name: new RegExp(s,"i") },
+      { company: new RegExp(s,"i") },
+      { phone: new RegExp(s,"i") }
+    ] } : {};
+    const items = await Customer.find(q).sort({createdAt:-1}).lean();
     res.json(items);
   }catch(e){ next(e); }
 });
 
-router.post('/', requireAuth, async (req,res,next)=>{
+router.post("/", requireAuth, async (req,res,next)=>{
   try{
-    const { name, company, phone, location, notes } = req.body;
-    const c = await Customer.create({ name, company, phone, location, notes, user: req.user.id });
+    const c = await Customer.create({
+      name:req.body.name,
+      company:req.body.company,
+      phone:req.body.phone,
+      location:req.body.location,
+      notes:req.body.notes
+    });
     res.status(201).json(c);
-  }catch(e){ next(e); }
-});
-
-router.put('/:id', requireAuth, async (req,res,next)=>{
-  try{
-    const doc = await Customer.findById(req.params.id);
-    if(!doc) return res.status(404).json({message:'Not found'});
-    if(req.user.role!=='admin' && String(doc.user)!==String(req.user.id))
-      return res.status(403).json({message:'Forbidden'});
-    Object.assign(doc, req.body);
-    await doc.save();
-    res.json(doc);
-  }catch(e){ next(e); }
-});
-
-router.delete('/:id', requireAuth, async (req,res,next)=>{
-  try{
-    const doc = await Customer.findById(req.params.id);
-    if(!doc) return res.status(404).json({message:'Not found'});
-    if(req.user.role!=='admin' && String(doc.user)!==String(req.user.id))
-      return res.status(403).json({message:'Forbidden'});
-    await doc.deleteOne();
-    res.json({ok:true});
   }catch(e){ next(e); }
 });
 

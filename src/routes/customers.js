@@ -22,4 +22,4 @@ router.post('/', async (req,res,next)=>{
   }catch(e){ next(e); }
 });
 
-module.exports = router;
+export default router;

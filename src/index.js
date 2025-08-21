@@ -34,3 +34,5 @@ app.use((err, req, res, next)=>{ console.error('Error:', err); res.status(500).j
 app.listen(PORT, ()=> console.log(`Server running on port ${PORT}`));
 
 app.use('/api/auth', require('./routes/auth.register'));
+
+app.use('/api/customers', requireAuth, require('./routes/customers'));

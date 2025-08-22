@@ -1,3 +1,4 @@
+import visitsRoutes from './routes/visits.js'
 import customersRoutes from './routes/customers.js'
 import 'dotenv/config';
 import express from 'express';

@@ -1,17 +1,19 @@
-import { Router } from 'express';
-import auth from './auth.js';
-import products from './products.js';
-import sales from './sales.js';
-import visits from './visits.js';
-import customers from './customers.js';
-import seed from './seed.js';
+import express from "express";
+import cors from "cors";
+import mongoose from "mongoose";
+import authRoutes from "./routes/auth.js";
+import customersRoutes from "./routes/customers.js";
 
-const router = Router();
-router.use('/auth', auth);
-router.use('/products', products);
-router.use('/sales', sales);
-router.use('/visits', visits);
-router.use('/customers', customers);
-router.use('/seed', seed);
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-export default router;
+app.get("/api/health", (req,res)=>res.json({ ok:true, mongo: mongoose.connection.readyState===1?"connected":"disconnected" }));
+
+app.use("/api/auth", authRoutes);
+app.use("/api/customers", customersRoutes);
+
+mongoose.connect(process.env.MONGO_URL);
+const port = process.env.PORT || 10000;
+app.listen(port);
+export default app;

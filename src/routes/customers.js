@@ -1,33 +1,27 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const Customer = require('../models/Customer');
-const { requireAuth } = require('../middleware/auth');
-
-router.use(requireAuth);
 
 router.get('/', async (req, res, next) => {
   try {
-    const { q } = req.query;
-    const match = {};
-    if (q) {
-      const rx = new RegExp(q, 'i');
-      match.$or = [
-        { name: rx },
-        { company: rx },
-        { phone: rx },
-        { location: rx }
-      ];
-    }
-    const items = await Customer.find(match).sort({ createdAt: -1 }).limit(200);
+    const q = {};
+    if (!req.user || req.user.role !== 'admin') q.user = req.user.id;
+    if (req.query.search) q.$text = { $search: req.query.search };
+    const items = await Customer.find(q).sort({ createdAt: -1 });
     res.json(items);
   } catch (e) { next(e); }
 });
 
 router.post('/', async (req, res, next) => {
   try {
-    const { name, company, phone, location, notes } = req.body || {};
-    if (!name) return res.status(400).json({ message: 'name required' });
-    const doc = await Customer.create({ name, company, phone, location, notes });
+    const payload = {
+      name: req.body.name,
+      company: req.body.company,
+      phone: req.body.phone,
+      location: req.body.location,
+      notes: req.body.notes,
+      user: req.user && req.user.id
+    };
+    const doc = await Customer.create(payload);
     res.status(201).json(doc);
   } catch (e) { next(e); }
 });

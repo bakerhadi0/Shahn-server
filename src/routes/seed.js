@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import Product from '../models/Product.js';
-import Sale from '../models/Sale.js';
+import Sale from '../models/Sales.js';
 import User from '../models/User.js';
 
 const router = Router();

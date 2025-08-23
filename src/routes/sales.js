@@ -1,66 +1,35 @@
-// src/routes/sales.js
-import { Router } from 'express';
-import Sale from '../models/Sale.js';
+import { Router } from "express"
+import Sale from "../models/sale.js"
+import Product from "../models/product.js"
 
-const router = Router();
+const r = Router()
 
-// إنشاء بيع مع دعم packSize/unitPrice/discount/vatRate
-router.post('/', async (req, res) => {
-  try {
-    const { product, quantity, packSize, unitPrice, discountType, discountValue, vatRate, note, date } = req.body;
-    if (!product || !quantity) return res.status(400).json({ message: 'product و quantity مطلوبان' });
+r.get("/", async (req, res) => {
+  const items = await Sale.find().populate("product").sort({ createdAt: -1 })
+  res.json(items)
+})
 
-    const sale = await Sale.create({ product, quantity, packSize, unitPrice, discountType, discountValue, vatRate, note, date });
-    res.status(201).json({ ok: true, sale });
-  } catch (e) {
-    console.error('Create sale error:', e);
-    res.status(500).json({ message: e.message });
-  }
-});
+r.post("/", async (req, res) => {
+  const { productId, qty = 1, price } = req.body
+  const p = await Product.findById(productId)
+  if (!p) return res.status(400).json({ error: "product not found" })
+  const s = await Sale.create({ product: p._id, qty, price: price ?? p.price })
+  res.status(201).json(s)
+})
 
-// عرض المبيعات
-router.get('/', async (_req, res) => {
-  try {
-    const items = await Sale.find().sort({ createdAt: -1 }).limit(500).populate('product');
-    res.json(items);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
+r.put("/:id", async (req, res) => {
+  const { productId, qty, price } = req.body
+  const patch = {}
+  if (productId) patch.product = productId
+  if (qty != null) patch.qty = qty
+  if (price != null) patch.price = price
+  const s = await Sale.findByIdAndUpdate(req.params.id, patch, { new: true })
+  res.json(s)
+})
 
-// ملخص
-router.get('/summary', async (req, res) => {
-  try {
-    const { from, to } = req.query;
-    const q = {};
-    if (from || to) {
-      q.date = {};
-      if (from) q.date.$gte = new Date(from);
-      if (to) q.date.$lte = new Date(to + 'T23:59:59.999Z');
-    }
-    const sales = await Sale.find(q).lean();
-    const summary = sales.reduce((acc, s) => {
-      acc.count += 1;
-      acc.qtyUnits += Number(s.qtyUnits || 0);
-      acc.subtotal += Number(s.subtotal || 0);
-      acc.discount += Number(s.discount || 0);
-      acc.vat      += Number(s.vat || 0);
-      acc.total    += Number(s.total || 0);
-      return acc;
-    }, { count: 0, qtyUnits: 0, subtotal: 0, discount: 0, vat: 0, total: 0 });
-    // تقريب لرقمين
-    const round2 = (n)=>Number(Number(n).toFixed(2));
-    res.json({
-      ok: true,
-      ...summary,
-      subtotal: round2(summary.subtotal),
-      discount: round2(summary.discount),
-      vat: round2(summary.vat),
-      total: round2(summary.total)
-    });
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
+r.delete("/:id", async (req, res) => {
+  await Sale.findByIdAndDelete(req.params.id)
+  res.json({ ok: true })
+})
 
-export default router;
+export default r

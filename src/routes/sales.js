@@ -1,11 +1,26 @@
 import { Router } from "express"
-import Sale from "../models/Sales.js"
+import Sale from "../models/sale.js"
 
-const router = Router()
+const r = Router()
 
-router.get("/", async (req,res)=>{ const items = await Sale.find().sort({createdAt:-1}); res.json(items) })
-router.post("/", async (req,res)=>{ const x = await Sale.create(req.body); res.status(201).json(x) })
-router.put("/:id", async (req,res)=>{ const x = await Sale.findByIdAndUpdate(req.params.id, req.body, {new:true}); res.json(x) })
-router.delete("/:id", async (req,res)=>{ await Sale.findByIdAndDelete(req.params.id); res.json({ok:true}) })
+r.get("/", async (req, res) => {
+  const rows = await Sale.find().sort({ createdAt: -1 })
+  res.json(rows)
+})
 
-export default router
+r.post("/", async (req, res) => {
+  const s = await Sale.create(req.body)
+  res.status(201).json(s)
+})
+
+r.put("/:id", async (req, res) => {
+  const s = await Sale.findByIdAndUpdate(req.params.id, req.body, { new: true })
+  res.json(s)
+})
+
+r.delete("/:id", async (req, res) => {
+  await Sale.findByIdAndDelete(req.params.id)
+  res.json({ ok: true })
+})
+
+export default r

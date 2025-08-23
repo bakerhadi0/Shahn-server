@@ -30,6 +30,7 @@ mongoose
     app.use("/api/sales", salesRoutes)
     app.use("/api/stats", statsRoutes)
     app.use("/api/users", usersRoutes)
+    app.use("/api/users", usersRoutes)
     app.listen(PORT, () => console.log("listening", PORT))
   })
   .catch(err => {

@@ -1,16 +1,25 @@
-import { Router } from "express"
-import Sale from "../models/sale.js"
+import { Router } from "express";
+import Sale from "../models/Sale.js";
 
-const router = Router()
+const router = Router();
 
 router.get("/sales", async (req, res) => {
-  const { from, to } = req.query
-  const match = {}
-  if (from) match.createdAt = { ...(match.createdAt || {}), $gte: new Date(from) }
-  if (to)   match.createdAt = { ...(match.createdAt || {}), $lte: new Date(to) }
+  const { from, to } = req.query;
+  const match = {};
+
+  if (from) {
+    const d = new Date(from);
+    d.setHours(0, 0, 0, 0);
+    match.createdAt = { $gte: d };
+  }
+  if (to) {
+    const d2 = new Date(to);
+    d2.setHours(23, 59, 59, 999);
+    match.createdAt = { ...(match.createdAt || {}), $lte: d2 };
+  }
 
   const rows = await Sale.aggregate([
-    { $match: match },
+    ...(Object.keys(match).length ? [{ $match: match }] : []),
     {
       $group: {
         _id: null,
@@ -18,9 +27,9 @@ router.get("/sales", async (req, res) => {
         totalAmount: { $sum: { $multiply: ["$qty", "$price"] } }
       }
     }
-  ])
+  ]);
 
-  res.json(rows[0] || { totalQty: 0, totalAmount: 0 })
-})
+  res.json(rows[0] || { totalQty: 0, totalAmount: 0 });
+});
 
-export default router
+export default router;

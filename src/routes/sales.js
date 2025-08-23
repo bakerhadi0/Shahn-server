@@ -1,26 +1,26 @@
-import { Router } from "express"
-import Sale from "../models/sale.js"
+import { Router } from "express";
+import Sale from "../models/sales.js";
 
-const r = Router()
+const router = Router();
 
-r.get("/", async (req, res) => {
-  const rows = await Sale.find().sort({ createdAt: -1 })
-  res.json(rows)
-})
+router.get("/", async (_req, res) => {
+  const rows = await Sale.find().sort({ createdAt: -1 });
+  res.json(rows);
+});
 
-r.post("/", async (req, res) => {
-  const s = await Sale.create(req.body)
-  res.status(201).json(s)
-})
+router.post("/", async (req, res) => {
+  const doc = await Sale.create(req.body);
+  res.status(201).json(doc);
+});
 
-r.put("/:id", async (req, res) => {
-  const s = await Sale.findByIdAndUpdate(req.params.id, req.body, { new: true })
-  res.json(s)
-})
+router.put("/:id", async (req, res) => {
+  const doc = await Sale.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(doc);
+});
 
-r.delete("/:id", async (req, res) => {
-  await Sale.findByIdAndDelete(req.params.id)
-  res.json({ ok: true })
-})
+router.delete("/:id", async (req, res) => {
+  await Sale.findByIdAndDelete(req.params.id);
+  res.json({ ok: true });
+});
 
-export default r
+export default router;

@@ -1,44 +1,33 @@
-import { Router } from 'express';
-import Product from '../models/Product.js';
+import express from 'express'
+import Product from '../models/product.js'
+const router = express.Router()
 
-const router = Router();
-
-router.post('/', async (req, res) => {
+router.get('/', async (req,res,next)=>{
   try {
-    const { name, price, stock } = req.body;
-    const product = await Product.create({ name, price, stock });
-    res.json(product);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
+    const items = await Product.find({}).sort({createdAt:-1})
+    res.json(items)
+  } catch(e){ next(e) }
+})
 
-router.get('/', async (_req, res) => {
+router.post('/', async (req,res,next)=>{
   try {
-    const products = await Product.find();
-    res.json(products);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
+    const doc = await Product.create(req.body||{})
+    res.status(201).json(doc)
+  } catch(e){ next(e) }
+})
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req,res,next)=>{
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, 
-req.body, { new: true });
-    res.json(product);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
+    const doc = await Product.findByIdAndUpdate(req.params.id, req.body||{}, {new:true})
+    res.json(doc)
+  } catch(e){ next(e) }
+})
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req,res,next)=>{
   try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Deleted successfully' });
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
+    await Product.findByIdAndDelete(req.params.id)
+    res.json({ok:true})
+  } catch(e){ next(e) }
+})
 
-export default router;
+export default router

@@ -5,7 +5,8 @@ import mongoose from "mongoose";
 import authRoutes, { requireAuth } from "./routes/auth.js";
 import customersRoutes from "./routes/customers.js";
 import productsRoutes from "./routes/products.js";
-
+import salesRoutes from "./routes/sales.js"
+app.use("/api/sales", salesRoutes)
 const app = express();
 
 app.use(cors());

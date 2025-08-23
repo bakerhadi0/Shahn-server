@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+// src/models/sale.js
+import mongoose from "mongoose"
 
 const SaleSchema = new mongoose.Schema(
   {
@@ -9,6 +10,6 @@ const SaleSchema = new mongoose.Schema(
     notes: { type: String, default: "" }
   },
   { timestamps: true }
-);
+)
 
-export default mongoose.model("Sale", SaleSchema);
+export default mongoose.model("Sale", SaleSchema)

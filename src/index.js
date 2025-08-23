@@ -3,6 +3,8 @@ import cors from "cors";
 import mongoose from "mongoose";
 import authRoutes,{requireAuth} from "./routes/auth.js";
 import customersRoutes from "./routes/customers.js";
+import productsRoutes from "./routes/products.js"
+app.use("/api/products", requireAuth, productsRoutes)
 const app=express();
 app.use(cors());
 app.use(express.json());

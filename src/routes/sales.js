@@ -1,3 +1,4 @@
+// src/routes/sales.js
 import { Router } from "express"
 import Sale from "../models/sale.js"
 

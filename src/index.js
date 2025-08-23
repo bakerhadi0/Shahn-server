@@ -8,7 +8,8 @@ import authRoutes from "./routes/auth.js"
 import customersRoutes from "./routes/customers.js"
 import visitsRoutes from "./routes/visits.js"
 import salesRoutes from "./routes/sales.js"
-
+import statsRoutes from "./routes/stats.js"
+app.use("/api/stats", statsRoutes)
 const app = express()
 app.use(cors())
 app.use(express.json())

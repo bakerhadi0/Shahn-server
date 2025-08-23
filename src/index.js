@@ -1,3 +1,4 @@
+import productsRoutes from './routes/products.js';
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -16,3 +17,5 @@ app.use("/api/customers",requireAuth,customersRoutes);
 const PORT=process.env.PORT||3000;
 app.listen(PORT,()=>console.log("listening",PORT));
 export default app;
+
+app.use('/api/products', requireAuth, productsRoutes);
